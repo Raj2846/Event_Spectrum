@@ -1,0 +1,253 @@
+# Event Management System - Complete Setup Guide
+
+## Requirements (requirements.txt)
+```
+Django==5.0
+mysqlclient==2.2.0
+Pillow==10.1.0
+qrcode[pil]==7.4.2
+razorpay==1.4.1
+django-cors-headers==4.3.1
+```
+
+## Installation Steps
+
+### 1. Create Virtual Environment
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+### 2. MySQL Database Setup
+```sql
+CREATE DATABASE event_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'event_user'@'localhost' IDENTIFIED BY 'your_password';
+GRANT ALL PRIVILEGES ON event_db.* TO 'event_user'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+### 3. Configure Settings
+Update `settings.py` with:
+- MySQL credentials
+- Razorpay API keys (get from https://dashboard.razorpay.com/app/keys)
+- Email configuration (Gmail App Password: https://support.google.com/accounts/answer/185833)
+
+### 4. Run Migrations
+```bash
+python manage.py makemigrations
+python manage.py migrate
+python manage.py createsuperuser
+```
+
+### 5. Create Media Directories
+```bash
+mkdir -p media/qr_codes media/event_images
+```
+
+### 6. Run Development Server
+```bash
+python manage.py runserver
+```
+
+## Razorpay Setup (Free Test Mode)
+
+1. Sign up at https://razorpay.com/
+2. Go to Settings → API Keys
+3. Generate Test Keys (free for testing)
+4. Add keys to `settings.py`:
+   - `RAZORPAY_KEY_ID`
+   - `RAZORPAY_KEY_SECRET`
+
+## Gmail SMTP Setup
+
+1. Enable 2-Factor Authentication on Gmail
+2. Generate App Password: https://myaccount.google.com/apppasswords
+3. Update settings.py:
+```python
+EMAIL_HOST_USER = 'your-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'your-16-digit-app-password'
+```
+
+## QR Scanning System Options
+
+### Option 1: Web-Based Scanner (Recommended - Implemented)
+**Technology:** HTML5-QRCode library
+**Pros:**
+- Works on any device with camera
+- No additional app needed
+- Fast and reliable
+- Real-time feedback
+
+**Implementation:** Already included in `scan_qr.html`
+
+### Option 2: Mobile App Scanner
+**Technology:** React Native with QR Scanner
+**Pros:**
+- Native performance
+- Offline capability
+- Better camera control
+
+**Setup:**
+```bash
+npx react-native init EventScanner
+npm install react-native-qrcode-scanner
+```
+
+### Option 3: Dedicated Scanner Device
+**Hardware:** USB/Bluetooth QR Scanner
+**Pros:**
+- Fastest scanning
+- Very reliable
+- No camera needed
+
+**Implementation:** Connect scanner to admin laptop, it types the QR data directly
+
+### Option 4: Python Desktop App
+**Technology:** OpenCV + PyQt5
+**Pros:**
+- Works offline
+- Fast processing
+- Custom UI
+
+```python
+pip install opencv-python pyzbar PyQt5
+```
+
+## Security Features Implemented
+
+### 1. Payment Security
+- Razorpay signature verification
+- CSRF protection
+- Secure payment callbacks
+- Database transaction locking
+
+### 2. Data Validation
+- Email validation
+- Phone number validation (Indian format)
+- SQL injection prevention (Django ORM)
+- XSS protection
+
+### 3. QR Code Security
+- Unique UUID per ticket
+- Encrypted QR data format
+- One-time check-in validation
+- Timestamp tracking
+
+### 4. Database Security
+- Atomic transactions
+- Row-level locking
+- Prepared statements
+- Input sanitization
+
+## Usage Flow
+
+### For Users:
+1. Browse events at `/`
+2. Click "Book Now" on desired event
+3. Fill booking form with validations
+4. Complete Razorpay payment
+5. Receive QR code via email
+6. Show QR at venue entrance
+
+### For Admins:
+1. Access scanner at `/scan/`
+2. Click "Start Scanner"
+3. Point camera at user's QR code
+4. System shows:
+   - ✓ Green: Valid ticket, first-time check-in
+   - ⚠ Yellow: Already checked in
+   - ✗ Red: Invalid/not found
+5. User details displayed on successful scan
+
+## Admin Dashboard Features
+
+Access at `/dashboard/`:
+- Total events
+- Total tickets sold
+- Check-in statistics
+- Event management
+
+## Django Admin
+
+Access at `/admin/`:
+- Create/edit events
+- View all tickets
+- Monitor payments
+- Export data
+
+## Testing Payment Gateway
+
+Use Razorpay test cards:
+- **Success:** 4111 1111 1111 1111
+- **Failure:** 4012 0010 3714 1112
+- CVV: Any 3 digits
+- Expiry: Any future date
+
+## Project Structure
+```
+event_project/
+├── event_project/
+│   ├── settings.py
+│   └── urls.py
+├── events/
+│   ├── models.py
+│   ├── views.py
+│   ├── forms.py
+│   ├── urls.py
+│   └── admin.py
+├── templates/
+│   └── events/
+│       ├── event_list.html
+│       ├── event_detail.html
+│       ├── payment.html
+│       ├── scan_qr.html
+│       └── ticket_confirmation.html
+├── media/
+│   ├── qr_codes/
+│   └── event_images/
+└── requirements.txt
+```
+
+## Production Deployment Checklist
+
+- [ ] Set DEBUG=False
+- [ ] Use environment variables for secrets
+- [ ] Enable HTTPS (SSL certificate)
+- [ ] Use production database settings
+- [ ] Set up proper email service (SendGrid/AWS SES)
+- [ ] Configure static files with whitenoise or CDN
+- [ ] Enable database backups
+- [ ] Set up monitoring (Sentry)
+- [ ] Use gunicorn/uwsgi
+- [ ] Configure nginx reverse proxy
+
+## Troubleshooting
+
+### Camera not working in scanner:
+- Ensure HTTPS is enabled
+- Grant camera permissions
+- Try different browsers (Chrome recommended)
+
+### QR code not generating:
+- Check Pillow installation
+- Verify media folder permissions
+- Check qrcode library version
+
+### Payment failing:
+- Verify Razorpay keys
+- Check test mode is enabled
+- Inspect browser console for errors
+
+### Email not sending:
+- Verify Gmail App Password
+- Check firewall settings
+- Try with different email provider
+
+## Support
+
+For issues, check:
+1. Django logs: `python manage.py runserver`
+2. Browser console (F12)
+3. MySQL error logs
+4. Email delivery logs

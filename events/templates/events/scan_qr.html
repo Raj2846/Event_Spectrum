@@ -1,0 +1,164 @@
+<!-- templates/events/scan_qr.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Scanner - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        #reader { width: 100%; max-width: 600px; margin: 0 auto; }
+        .success-msg { color: #28a745; font-weight: bold; }
+        .error-msg { color: #dc3545; font-weight: bold; }
+        .warning-msg { color: #ffc107; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Event Management - Admin</a>
+            <div>
+                <span class="navbar-text text-white me-3">
+                    <i class="fas fa-user"></i> {{ user.username }}
+                </span>
+                <a href="/dashboard/" class="btn btn-outline-light btn-sm me-2">Dashboard</a>
+                <a href="{% url 'admin_logout' %}" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <h2 class="text-center mb-4">Scan Ticket QR Code</h2>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div id="reader"></div>
+                        <div class="text-center mt-3">
+                            <button id="startScan" class="btn btn-primary">Start Scanner</button>
+                            <button id="stopScan" class="btn btn-danger" style="display:none;">Stop Scanner</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="result" class="card" style="display:none;">
+                    <div class="card-body">
+                        <h4 id="resultStatus" class="mb-3"></h4>
+                        <div id="resultDetails"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let html5QrCode;
+        let isScanning = false;
+
+        function onScanSuccess(decodedText, decodedResult) {
+            if (isScanning) {
+                isScanning = false;
+                html5QrCode.stop();
+                document.getElementById('startScan').style.display = 'inline-block';
+                document.getElementById('stopScan').style.display = 'none';
+                
+                fetch('/scan/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ qr_data: decodedText })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    displayResult(data);
+                })
+                .catch(error => {
+                    displayError('Network error: ' + error);
+                });
+            }
+        }
+
+        function displayResult(data) {
+            const resultDiv = document.getElementById('result');
+            const statusDiv = document.getElementById('resultStatus');
+            const detailsDiv = document.getElementById('resultDetails');
+            
+            resultDiv.style.display = 'block';
+            
+            if (data.status === 'success') {
+                statusDiv.className = 'success-msg mb-3';
+                statusDiv.textContent = '✓ ' + data.message;
+                detailsDiv.innerHTML = `
+                    <p><strong>Name:</strong> ${data.ticket.name}</p>
+                    <p><strong>Email:</strong> ${data.ticket.email}</p>
+                    <p><strong>Phone:</strong> ${data.ticket.phone}</p>
+                    <p><strong>Event:</strong> ${data.ticket.event}</p>
+                    <p><strong>Ticket ID:</strong> ${data.ticket.ticket_id}</p>
+                `;
+            } else if (data.status === 'warning') {
+                statusDiv.className = 'warning-msg mb-3';
+                statusDiv.textContent = '⚠ ' + data.message;
+                detailsDiv.innerHTML = `
+                    <p><strong>Name:</strong> ${data.ticket.name}</p>
+                    <p><strong>Email:</strong> ${data.ticket.email}</p>
+                    <p><strong>Event:</strong> ${data.ticket.event}</p>
+                    <p><strong>Already checked in at:</strong> ${data.ticket.checked_in_at}</p>
+                `;
+            } else {
+                statusDiv.className = 'error-msg mb-3';
+                statusDiv.textContent = '✗ ' + data.message;
+                detailsDiv.innerHTML = '';
+            }
+            
+            setTimeout(() => {
+                isScanning = true;
+                html5QrCode.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: 250 },
+                    onScanSuccess
+                );
+            }, 3000);
+        }
+
+        function displayError(message) {
+            const resultDiv = document.getElementById('result');
+            const statusDiv = document.getElementById('resultStatus');
+            const detailsDiv = document.getElementById('resultDetails');
+            
+            resultDiv.style.display = 'block';
+            statusDiv.className = 'error-msg mb-3';
+            statusDiv.textContent = '✗ ' + message;
+            detailsDiv.innerHTML = '';
+        }
+
+        document.getElementById('startScan').addEventListener('click', function() {
+            html5QrCode = new Html5Qrcode("reader");
+            isScanning = true;
+            
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: 250 },
+                onScanSuccess
+            ).then(() => {
+                document.getElementById('startScan').style.display = 'none';
+                document.getElementById('stopScan').style.display = 'inline-block';
+            }).catch(err => {
+                alert('Error starting scanner: ' + err);
+            });
+        });
+
+        document.getElementById('stopScan').addEventListener('click', function() {
+            isScanning = false;
+            html5QrCode.stop().then(() => {
+                document.getElementById('startScan').style.display = 'inline-block';
+                document.getElementById('stopScan').style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html>

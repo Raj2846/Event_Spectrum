@@ -1,0 +1,324 @@
+# Event Management System - Complete File Structure
+
+```
+event_management/                          # Root project directory
+│
+├── event_project/                         # Main Django project folder
+│   ├── __init__.py
+│   ├── settings.py                        # ⭐ Main configuration file
+│   ├── urls.py                            # Project-level URL routing
+│   ├── wsgi.py                            # WSGI config for deployment
+│   └── asgi.py                            # ASGI config for async
+│
+├── events/                                # Main app for event management
+│   ├── migrations/                        # Database migration files
+│   │   ├── __init__.py
+│   │   ├── 0001_initial.py               # Auto-generated
+│   │   └── ...
+│   │
+│   ├── __init__.py
+│   ├── admin.py                           # ⭐ Django admin configuration
+│   ├── apps.py                            # App configuration
+│   ├── models.py                          # ⭐ Database models (Event, Ticket)
+│   ├── views.py                           # ⭐ Business logic & request handlers
+│   ├── auth_views.py                      # ⭐ NEW: Authentication views
+│   ├── middleware.py                      # ⭐ NEW: Security middleware (optional)
+│   ├── forms.py                           # ⭐ Form validation
+│   ├── urls.py                            # ⭐ App-level URL routing
+│   └── tests.py                           # Unit tests
+│
+├── templates/                             # HTML templates folder
+│   ├── base.html                          # (Optional) Base template
+│   └── events/                            # Event-specific templates
+│       ├── event_list.html                # ⭐ Homepage - list all events
+│       ├── event_detail.html              # ⭐ Event details & booking form
+│       ├── payment.html                   # ⭐ Razorpay payment page
+│       ├── ticket_confirmation.html       # ⭐ Success page after payment
+│       ├── scan_qr.html                   # ⭐ QR scanner for admin
+│       └── admin_dashboard.html           # ⭐ Admin dashboard
+│
+├── static/                                # Static files (CSS, JS, images)
+│   ├── css/
+│   │   └── style.css                      # Custom CSS (optional)
+│   ├── js/
+│   │   └── main.js                        # Custom JavaScript (optional)
+│   └── images/
+│       └── logo.png                       # Site logo (optional)
+│
+├── media/                                 # User-uploaded files
+│   ├── qr_codes/                          # ⭐ Generated QR codes
+│   │   ├── qr_abc123.png
+│   │   ├── qr_def456.png
+│   │   └── ...
+│   │
+│   └── event_images/                      # ⭐ Event poster images
+│       ├── concert.jpg
+│       ├── workshop.png
+│       └── ...
+│
+├── venv/                                  # Virtual environment (don't commit)
+│   ├── bin/
+│   ├── lib/
+│   └── ...
+│
+├── manage.py                              # ⭐ Django management script
+├── requirements.txt                       # ⭐ Python dependencies
+├── .env                                   # Environment variables (create this)
+├── .gitignore                             # Git ignore file
+└── README.md                              # Project documentation
+
+
+⭐ = Files I created for you
+```
+
+---
+
+## Detailed File Breakdown
+
+### 📁 **event_project/** (Main Project Configuration)
+
+#### `settings.py` - Core Configuration
+```python
+# Contains:
+- Database settings (MySQL)
+- Razorpay API keys
+- Email configuration
+- Security settings
+- Static/Media file paths
+```
+
+#### `urls.py` - Project URLs
+```python
+# Routes:
+- /admin/ → Django admin
+- / → events app URLs
+```
+
+---
+
+### 📁 **events/** (Main Application)
+
+#### `models.py` - Database Tables
+```python
+# Two main models:
+1. Event - Stores event details
+2. Ticket - Stores bookings & QR codes
+```
+
+#### `views.py` - Business Logic
+```python
+# Main functions:
+- event_list() → Show all events
+- event_detail() → Show event & booking form
+- payment_success() → Handle Razorpay callback
+- scan_qr() → Verify QR codes
+- admin_dashboard() → Admin stats
+```
+
+#### `forms.py` - Input Validation
+```python
+# TicketBookingForm with validation for:
+- Full name (letters only, 3+ chars)
+- Email (valid format)
+- Phone (10-digit Indian number)
+```
+
+#### `admin.py` - Django Admin Panel
+```python
+# Admin interface for:
+- Creating/editing events
+- Viewing tickets
+- Exporting data to CSV
+```
+
+#### `urls.py` - App URLs
+```python
+# Routes:
+- / → Event list
+- /event/<id>/ → Event detail
+- /payment/success/ → Payment callback
+- /scan/ → QR scanner
+- /dashboard/ → Admin dashboard
+```
+
+---
+
+### 📁 **templates/events/** (Frontend)
+
+#### `event_list.html`
+- Homepage showing all upcoming events
+- Cards with event details
+- "Book Now" buttons
+
+#### `event_detail.html`
+- Full event information
+- Booking form with validation
+- Proceeds to payment
+
+#### `payment.html`
+- Integrates Razorpay payment gateway
+- Handles payment success/failure
+- Redirects to confirmation
+
+#### `scan_qr.html`
+- Web-based QR scanner
+- Uses HTML5-QRCode library
+- Real-time ticket verification
+- Color-coded responses (✓/⚠/✗)
+
+#### `ticket_confirmation.html`
+- Shows booking success
+- Displays ticket details
+- Download QR code option
+
+---
+
+### 📁 **media/** (Generated Files)
+
+#### `qr_codes/`
+- Auto-generated QR codes
+- Format: `qr_<ticket_id>.png`
+- Created on successful payment
+
+#### `event_images/`
+- Event poster uploads
+- Uploaded via Django admin
+- Displayed on event cards
+
+---
+
+### 📁 **static/** (Optional - Not Required Initially)
+
+You can add custom CSS/JS here, but the project uses Bootstrap CDN, so this is optional.
+
+---
+
+## 🔧 Files You Need to Create
+
+### 1. `.env` (Environment Variables)
+```bash
+# Create this file in root directory
+DEBUG=True
+SECRET_KEY=your-secret-key-here
+DATABASE_NAME=event_db
+DATABASE_USER=root
+DATABASE_PASSWORD=your_password
+RAZORPAY_KEY_ID=your_key_id
+RAZORPAY_KEY_SECRET=your_key_secret
+EMAIL_HOST_USER=your-email@gmail.com
+EMAIL_HOST_PASSWORD=your-app-password
+```
+
+### 2. `.gitignore`
+```
+# Python
+*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django
+*.log
+db.sqlite3
+media/
+staticfiles/
+
+# Environment
+.env
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+```
+
+---
+
+## 📝 Setup Commands in Order
+
+```bash
+# 1. Create project structure
+mkdir event_management
+cd event_management
+
+# 2. Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Create Django project
+django-admin startproject event_project .
+
+# 5. Create app
+python manage.py startapp events
+
+# 6. Create directories
+mkdir -p templates/events
+mkdir -p static/css static/js static/images
+mkdir -p media/qr_codes media/event_images
+
+# 7. Copy all the code files I provided into their respective locations
+
+# 8. Create MySQL database
+mysql -u root -p
+CREATE DATABASE event_db;
+exit
+
+# 9. Run migrations
+python manage.py makemigrations
+python manage.py migrate
+
+# 10. Create superuser
+python manage.py createsuperuser
+
+# 11. Run server
+python manage.py runserver
+```
+
+---
+
+## 🌐 Access URLs
+
+After running the server:
+
+```
+Homepage:           http://127.0.0.1:8000/
+Event Detail:       http://127.0.0.1:8000/event/1/
+QR Scanner:         http://127.0.0.1:8000/scan/
+Admin Dashboard:    http://127.0.0.1:8000/dashboard/
+Django Admin:       http://127.0.0.1:8000/admin/
+```
+
+---
+
+## 📊 File Size Reference
+
+```
+Total Project Size: ~5-10 MB (without venv)
+
+With virtual environment: ~200-300 MB
+With media files (QR codes): Varies based on usage
+```
+
+---
+
+## 🎯 Key Files to Focus On
+
+**Must Understand:**
+1. `settings.py` - Configuration
+2. `models.py` - Database structure
+3. `views.py` - Main logic
+4. `urls.py` (both) - Routing
+
+**Can Learn Later:**
+- `admin.py` - Admin customization
+- `forms.py` - Advanced validation
+- Templates - Already working
+
+---
+
+This structure follows Django best practices and keeps everything organized! 🚀
