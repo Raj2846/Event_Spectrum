@@ -1,5 +1,3 @@
-from django.db import models
-
 # Create your models here.
 # events/models.py
 from django.db import models

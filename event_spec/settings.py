@@ -75,21 +75,37 @@ WSGI_APPLICATION = 'event_spec.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'event_db',
-        'USER': 'rajkumar',
-        'PASSWORD': 'MySQL@root2846',
-        'HOST': 'localhost',
-        'PORT': '3306',
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            'charset': 'utf8mb4',
-        },
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'event_db',
+#         'USER': 'rajkumar',
+#         'PASSWORD': 'MySQL@root2846',
+#         'HOST': 'localhost',
+#         'PORT': '3306',
+#         'OPTIONS': {
+#             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+#             'charset': 'utf8mb4',
+#         },
+#     }
+# }
 
+
+# event_spec  database name
+# 5432 ports
+# PiObqTpN6TunTEbuRMrbtX7z7b5rKBgE   pass
+# postgresql://event_spec_user:PiObqTpN6TunTEbuRMrbtX7z7b5rKBgE@dpg-d775u094tr6s739e07ig-a/event_spec //int
+# postgresql://event_spec_user:PiObqTpN6TunTEbuRMrbtX7z7b5rKBgE@dpg-d775u094tr6s739e07ig-a.singapore-postgres.render.com/event_spec // ext
+# PGPASSWORD=PiObqTpN6TunTEbuRMrbtX7z7b5rKBgE psql -h dpg-d775u094tr6s739e07ig-a.singapore-postgres.render.com -U event_spec_user event_spec //psql command
+
+import dj_database_url
+import os
+
+DATABASES = {
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL')
+    )
+}
 
 
 # Password validation
